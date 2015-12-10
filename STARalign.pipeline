@@ -1,0 +1,28 @@
+starIndex.once
+	gunzip -f /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_C57BL6.fa.gz;
+	/software/team113/algorithms/STAR2.4/STAR/bin/STAR --runThreadN 12 --runMode genomeGenerate --genomeDir /lustre/scratch109/sanger/rg12/genome/STAR_[% datasource.Alignment_Strain %] --genomeFastaFiles /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_C57BL6.fa;
+	gzip /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_C57BL6.fa;
+	touch [% starIndex.touch %];
+starIndex.mem 30000
+starIndex.cores 12
+
+starIndexCATST.once
+	gunzip -f /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_CAST.fa.gz;
+	/software/team113/algorithms/STAR2.4/STAR/bin/STAR --runThreadN 12 --runMode genomeGenerate --genomeDir /lustre/scratch109/sanger/rg12/genome/STAR_[% datasource.Alignment_Strain %] --genomeFastaFiles /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_CAST.fa;
+	gzip /lustre/scratch109/sanger/rg12/genome/[% datasource.Alignment_Strain %]/mm10_CAST.fa;
+	touch [% starIndex.touch %];
+starIndex.mem 30000
+starIndex.cores 12
+
+bamtofq.
+	bamtofastq filename=[% datasource.File %] gz=1 F=[% bamtofq.out_1.fq.gz %] F2=[% bamtofq.out_2.fq.gz %];
+bamtofq.mem 1500
+
+starAlign.
+	/software/team113/algorithms/STAR2.4/STAR/bin/STAR --clip3pNbases 1 --runThreadN 12 --genomeDir /lustre/scratch109/sanger/rg12/genome/STAR_[% datasource.Alignment_Strain %] --readFilesIn [% bamtofq.out_1.fq.gz %] [% bamtofq.out_2.fq.gz %] --readFilesCommand "gzip -cd" --outSAMtype BAM SortedByCoordinate;
+	samtools index [% starAlign.output1 %];
+starAlign.mem 50000
+starAlign.cores 12
+starAlign.output
+starAlign.output Aligned.sortedByCoord.out.bam Aligned.sortedByCoord.out.bam.bai
+
